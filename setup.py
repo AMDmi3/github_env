@@ -24,7 +24,7 @@ def get_long_description():
 setup(
     name='github_env',
     version=get_version(),
-    description='Manage SQL queries as a Python API',
+    description='Simple tool to manage $GITHUB_ENV in GitHub actions',
     long_description=get_long_description(),
     long_description_content_type='text/markdown',
     author='Dmitry Marakasov',
