@@ -25,6 +25,7 @@ from __future__ import annotations
 import argparse
 import os
 import sys
+from typing import TextIO
 
 __version__ = '0.0.1'
 
@@ -58,6 +59,12 @@ def parse_arguments(argv: list[str] | None) -> argparse.Namespace:
         help='Apply condition: only run if argument is "true"'
     )
     parser.add_argument(
+        '-v',
+        '--verbose',
+        action='store_true',
+        help='Be verbose, show changes done to env file'
+    )
+    parser.add_argument(
         'modifications',
         metavar='EXPR',
         nargs='+',
@@ -82,9 +89,11 @@ def parse_arguments(argv: list[str] | None) -> argparse.Namespace:
 
 class Vars:
     _vars: dict[str, str]
+    _orig_vars: dict[str, str]
 
     def __init__(self) -> None:
         self._vars = {}
+        self._orig_vars = {}
 
     def load(self, path: str) -> None:
         with open(path) as fd:
@@ -95,6 +104,8 @@ class Vars:
                     self._vars[kv[0]] = kv[1]
                 else:
                     print(f'WARNING: stray line in GITHUB_ENV file: "{line}"', file=sys.stderr)
+
+        self._orig_vars = {key: value for key, value in self._vars.items()}
 
     def dump(self, path: str) -> None:
         with open(path, 'w') as fd:
@@ -125,6 +136,16 @@ class Vars:
             self._vars[key] = ' '.join(
                 value for value in values if value != removed
             )
+
+    def print_diff(self, f: TextIO) -> None:
+        keys = set(self._vars.keys()) | set(self._orig_vars.keys())
+
+        for key in sorted(keys):
+            if self._vars.get(key) != self._orig_vars.get(key):
+                if key in self._orig_vars:
+                    print(f'-{key}={self._orig_vars[key]}', file=f)
+                if key in self._vars:
+                    print(f'+{key}={self._vars[key]}', file=f)
 
 
 def apply_modification(variables: Vars, mod: str) -> None:
@@ -160,6 +181,9 @@ def main(argv: list[str] | None = None) -> None:
 
     for mod in args.modifications:
         apply_modification(variables, mod)
+
+    if args.verbose:
+        variables.print_diff(sys.stderr)
 
     variables.dump(args.file)
 

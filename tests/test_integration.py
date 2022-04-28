@@ -117,3 +117,12 @@ def test_if(envfile):
     assert _read_lines(envfile) == ['FOO=2']
     main(['-f', str(envfile), '--if', 'false', 'FOO=3'])
     assert _read_lines(envfile) == ['FOO=2']
+
+
+def test_verbose(envfile, capsys):
+    main(['-f', str(envfile), '--verbose', 'FOO=1'])
+    captured = capsys.readouterr()
+    assert captured.err == '+FOO=1\n'
+    main(['-f', str(envfile), '--verbose', 'FOO=2'])
+    captured = capsys.readouterr()
+    assert captured.err == '-FOO=1\n+FOO=2\n'
