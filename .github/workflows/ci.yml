@@ -32,10 +32,13 @@ jobs:
         run: make mypy
       - name: Check with isort
         run: make isort-check
-      - name: Installation check
+      - name: Installation and usage
         run: |
           pip install .
-          github_env.py --help || true
+          github_env.py --help
+          github_env.py GITHUB_ENV_WORKS=yes
+      - name: Check that the run succeeded
+        run: test $GITHUB_ENV_WORKS == yes
       - name: Push coverage info
         run: codecov
         if: ${{ matrix.coverage }}
