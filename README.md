@@ -62,7 +62,7 @@ And here's how it's simplified with `github_env.py` script:
 ```yaml
       - name: Set up environment
         run: |
-		  curl -s https://raw.githubusercontent.com/AMDmi3/github_env/master/github_env.py > e; chmod 755 e
+          curl -s https://raw.githubusercontent.com/AMDmi3/github_env/master/github_env.py > e; chmod 755 e
           ./e 'CXX=${{ matrix.cxx }}'
           ./e 'CXXFLAGS=-Wall -Wextra -pedantic'
           ./e --if ${{ matrix.cxx == 'clang++' }} 'CXXFLAGS+=-Wno-self-assign-overloaded'
