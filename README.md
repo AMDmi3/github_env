@@ -32,6 +32,17 @@ github_env.py --file env
 github_env.py --if ${{ matrix.compiler == 'clang' }} CFLAGS+=-Werror
 ```
 
+## Obtaining
+
+You can install the script in your CI environment with plain `curl`.
+- It's advisable to fetch from a specific tag (and not a `master`
+  branch) to avoid possible breakages due to incompatible changes.
+- You may set a shorter name for the script.
+
+```shell
+curl -s https://raw.githubusercontent.com/AMDmi3/github_env/0.0.1/github_env.py > e; chmod 755 e
+```
+
 ## Example
 
 It's pretty common to have a logic like this which tunes environment
@@ -66,7 +77,7 @@ And here's how it's simplified with `github_env.py` script:
 ```yaml
       - name: Set up environment
         run: |
-          curl -s https://raw.githubusercontent.com/AMDmi3/github_env/master/github_env.py > e; chmod 755 e
+          curl -s https://raw.githubusercontent.com/AMDmi3/github_env/0.0.1/github_env.py > e; chmod 755 e
           ./e 'CXX=${{ matrix.cxx }}'
           ./e 'CXXFLAGS=-Wall -Wextra -pedantic'
           ./e --if ${{ matrix.cxx == 'clang++' }} 'CXXFLAGS+=-Wno-self-assign-overloaded'
