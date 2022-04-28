@@ -11,48 +11,62 @@ are often used. In complex scenarios, variables are stored in
 file. However, this file does not allow appending variables which
 is often needed. This small script simplifies this task.
 
-## Synopsis
+## Usage
 
-First, let's convert basic variable setting to the script. Your
-step which sets the environment probably looks like this:
-```yaml
-echo 'CXX=${{ matrix.cxx }}' >> $GITHUB_ENV
-echo 'CXXFLAGS=-Wall -Wextra -pedantic' >> $GITHUB_ENV
+```shell
+github_env.py FOO=bar    # add or rewrite a variable 
+github_env.py FOO+=bar   # append to a variable
+github_env.py FOO++=bar  # prepend to a variable
+github_env.py FOO-=bar   # remove value from a variable
+github_env.py !FOO       # undefine a variable
+
+# explicitly pass path to env file, but you don't need it
+# because it's retrieved from $GITHUB_ENV automatically
+github_env.py --file env
+
+# conditional execution to use with GitHub actions expressions
+github_env.py --if ${{ matrix.compiler == 'clang' }} CFLAGS+=-Werror
 ```
 
-Here's how it looks like with `github_env`:
+## Example
+
+It's pretty common to have a logic like this which tunes environment
+based on settings from matrix:
+
 ```yaml
-curl -s https://raw.githubusercontent.com/AMDmi3/github_env/master/github_env.py > e; chmod 755 e
-./e 'CXX=${{ matrix.cxx }}'
-./e 'CXXFLAGS=-Wall -Wextra -pedantic"'
+jobs:
+  build:
+    stragegy:
+      matrix:
+        include
+          - { cxx: g++, coverage: true }
+          - { cxx: clang++, coverage: false }
+    steps:
+      ...
+      - name: Set up environment
+        run: |
+          echo 'CXX=${{ matrix.cxx }}' >> $GITHUB_ENV
+          echo 'CXXFLAGS=-Wall -Wextra -pedantic' >> $GITHUB_ENV
+      - name: Set up environment (compiler-specific flags)
+        if: ${{ matrix.cxx == 'clang++' }}
+        run: echo "CXXFLAGS=$CXXFLAGS -Wno-self-assign-overloaded" >> $GITHUB_ENV
+      - name: Set up environment (coverage)
+        if: ${{ matrix.coverage }}
+        run: |
+          echo "CXXFLAGS=$CXXFLAGS --coverage" >> $GITHUB_ENV
+          echo "LDFLAGS=$LDFLAGS --coverage" >> $GITHUB_ENV
 ```
 
-One extra line for getting the script, but cleaner syntax already.
-
-Now you can use additional features.
-
-### Append variables
+And here's how it's simplified with `github_env.py` script:
 
 ```yaml
-./e 'CXXFLAGS+=-Werror'  # CXXFLAGS=-Wall -Wextra -pedantic -Werror
-```
-
-### Prepend variables
-
-```yaml
-./e 'CXXFLAGS++=-Werror'  # CXXFLAGS=-Werror -Wall -Wextra -pedantic
-```
-
-### Reset variables
-
-```yaml
-./e '!CXXFLAGS'  # CXXFLAGS is removed from env
-```
-
-### Remove values from variables
-
-```yaml
-./e 'CXXFLAGS-=-Wall'  # CXXFLAGS=-Wextra -pedantic
+      - name: Set up environment
+        run: |
+		  curl -s https://raw.githubusercontent.com/AMDmi3/github_env/master/github_env.py > e; chmod 755 e
+          ./e 'CXX=${{ matrix.cxx }}'
+          ./e 'CXXFLAGS=-Wall -Wextra -pedantic'
+          ./e --if ${{ matrix.cxx == 'clang++' }} 'CXXFLAGS+=-Wno-self-assign-overloaded'
+          ./e --if ${{ matrix.coverage }} 'CXXFLAGS+=--coverage' 'LDFLAGS+=--coverage'
 ```
 
 ## Author
