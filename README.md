@@ -8,8 +8,12 @@ When using GitHub actions, [environment
 variables](https://docs.github.com/en/actions/learn-github-actions/environment-variables)
 are often used. In complex scenarios, variables are stored in
 [`$GITHUB_ENV`](https://docs.github.com/en/actions/using-workflows/workflow-commands-for-github-actions#setting-an-environment-variable)
-file. However, this file does not allow appending variables which
-is often needed. This small script simplifies this task.
+file. However, this file does not allow straightforward appending
+variables which is often needed. This small script simplifies this
+task, allowing to modify environment by rewriting variables, as well
+as appending, prepending, removing values from variables, and
+undefining them. There's also support for conditional execution
+based on expression.
 
 ## Usage
 
