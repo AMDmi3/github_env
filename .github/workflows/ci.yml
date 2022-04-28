@@ -31,7 +31,9 @@ jobs:
       - name: Check with isort
         run: make isort-check
       - name: Installation check
-        run: pip install . || true
+        run: |
+          pip install .
+          github_env.py --help || true
       - name: Push coverage info
         run: codecov
         if: ${{ matrix.coverage }}
