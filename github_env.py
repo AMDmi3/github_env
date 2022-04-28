@@ -43,6 +43,7 @@ def parse_arguments(argv: list[str]) -> argparse.Namespace:
     )
 
     parser.add_argument('-f', '--file', type=str, metavar='PATH', default=os.environ.get('GITHUB_ENV'), help='Path to variables file (by default take from $GITHUB_ENV)')
+    parser.add_argument('-i', '--if', type=str, metavar='COND', dest='cond', help='Apply condition: only run if argument is "true"')
     parser.add_argument('modifications', metavar='EXPR', nargs='+', default=[], help='Variable modification expressions')
 
     args = parser.parse_args(argv)
@@ -122,6 +123,9 @@ def apply_modification(variables: Vars, mod: str) -> None:
 
 def main(argv: list[str]) -> None:
     args = parse_arguments(argv)
+
+    if args.cond is not None and args.cond != 'true':
+        return
 
     variables = Vars()
 

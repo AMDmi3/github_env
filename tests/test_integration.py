@@ -82,3 +82,11 @@ def test_remove_value(envfile):
     assert _read_lines(envfile) == ['FOO=2 3']
     main(['-f', str(envfile), 'FOO-=2'])
     assert _read_lines(envfile) == ['FOO=3']
+
+
+def test_if(envfile):
+    main(['-f', str(envfile), 'FOO=1'])
+    main(['-f', str(envfile), '--if', 'true', 'FOO=2'])
+    assert _read_lines(envfile) == ['FOO=2']
+    main(['-f', str(envfile), '--if', 'false', 'FOO=3'])
+    assert _read_lines(envfile) == ['FOO=2']
