@@ -38,10 +38,25 @@ def envfile(tmp_path: Path) -> Path:
     return tmp_path / 'env'
 
 
-@pytest.mark.skipif('GITHUB_ENV' in os.environ, reason='GITHUB_ENV must not be defined')
 def test_no_path():
+    if 'GITHUB_ENV' in os.environ:
+        del os.environ['GITHUB_ENV']
     with pytest.raises(IncorrectInvocation):
         main(['FOO=bar'])
+
+
+def test_empty_args():
+    if 'GITHUB_ENV' in os.environ:
+        del os.environ['GITHUB_ENV']
+    with pytest.raises(SystemExit):
+        main([])
+
+
+def test_bad_args(envfile):
+    if 'GITHUB_ENV' in os.environ:
+        del os.environ['GITHUB_ENV']
+    with pytest.raises(IncorrectInvocation):
+        main(['-f', str(envfile), 'FOO'])
 
 
 def test_set(envfile):
@@ -65,11 +80,21 @@ def test_append(envfile):
     assert _read_lines(envfile) == ['FOO=1 2 3']
 
 
+def test_append_creating(envfile):
+    main(['-f', str(envfile), 'FOO+=1'])
+    assert _read_lines(envfile) == ['FOO=1']
+
+
 def test_prepend(envfile):
     main(['-f', str(envfile), 'FOO=1', 'FOO++=2'])
     assert _read_lines(envfile) == ['FOO=2 1']
     main(['-f', str(envfile), 'FOO++=3'])
     assert _read_lines(envfile) == ['FOO=3 2 1']
+
+
+def test_prepend_creating(envfile):
+    main(['-f', str(envfile), 'FOO++=1'])
+    assert _read_lines(envfile) == ['FOO=1']
 
 
 def test_remove_var(envfile):
