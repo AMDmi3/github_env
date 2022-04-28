@@ -33,20 +33,44 @@ class IncorrectInvocation(RuntimeError):
     pass
 
 
-def parse_arguments(argv: list[str]) -> argparse.Namespace:
+def parse_arguments(argv: list[str] | None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(
-        prog='github_env.py',
-        #formatter_class=lambda prog: argparse.HelpFormatter(prog, width=78),
+        formatter_class=lambda prog: argparse.HelpFormatter(prog, width=78),
         description="""
         Modify GITHUB_ENV file in a flexible way.
-        Test test
-        """,
-        add_help=False
+        """
     )
 
-    parser.add_argument('-f', '--file', type=str, metavar='PATH', default=os.environ.get('GITHUB_ENV'), help='Path to variables file (by default take from $GITHUB_ENV)')
-    parser.add_argument('-i', '--if', type=str, metavar='COND', dest='cond', help='Apply condition: only run if argument is "true"')
-    parser.add_argument('modifications', metavar='EXPR', nargs='+', default=[], help='Variable modification expressions')
+    parser.add_argument(
+        '-f',
+        '--file',
+        type=str,
+        metavar='PATH',
+        default=os.environ.get('GITHUB_ENV'),
+        help='Path to variables file (by default take from $GITHUB_ENV)'
+    )
+    parser.add_argument(
+        '-i',
+        '--if',
+        type=str,
+        metavar='COND',
+        dest='cond',
+        help='Apply condition: only run if argument is "true"'
+    )
+    parser.add_argument(
+        'modifications',
+        metavar='EXPR',
+        nargs='+',
+        default=[],
+        help="""
+        Variable modification expressions:
+        VAR=value to add or rewrite a variable,
+        VAR+=value to append a value to a variable,
+        VAR++=value to prepend a value to a variable,
+        VAR-=value to remove a value from a variable,
+        !VAR to undefine a variable.
+        """
+    )
 
     args = parser.parse_args(argv)
 
@@ -123,7 +147,7 @@ def apply_modification(variables: Vars, mod: str) -> None:
         variables.set(key, value)
 
 
-def main(argv: list[str]) -> None:
+def main(argv: list[str] | None = None) -> None:
     args = parse_arguments(argv)
 
     if args.cond is not None and args.cond != 'true':
@@ -142,6 +166,6 @@ def main(argv: list[str]) -> None:
 
 if __name__ == '__main__':
     try:
-        main(sys.argv[1:])
+        main()
     except IncorrectInvocation as e:
         print(f'FATAL: {e}', file=sys.stderr)
