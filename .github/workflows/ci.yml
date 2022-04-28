@@ -23,7 +23,9 @@ jobs:
           pip install -r requirements-dev.txt
           pip install codecov
       - name: Run tests
-        run: make flake8
+        run: make test
+        env:
+          PYTEST_ARGS: --cov-report=xml --cov=github_env
       - name: Check with flake8
         run: make flake8
       - name: Check with mypy
